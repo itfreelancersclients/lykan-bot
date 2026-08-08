@@ -3,6 +3,11 @@
 
 require('dotenv').config();
 const TelegramBot = require('node-telegram-bot-api');
+const http = require('http');
+
+// Back4app requires a listening port even for background services — this tiny
+// server just responds "OK" so the platform's port check passes.
+http.createServer((req, res) => res.end('LYKAN bot is running')).listen(3000);
 
 const BOT_TOKEN = process.env.BOT_TOKEN;
 const MINIAPP_URL = 'https://itfreelancersclients.github.io/lykan-miner-app/'; // Live Mini App URL
