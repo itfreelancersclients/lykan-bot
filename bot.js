@@ -1,0 +1,58 @@
+// LYKAN Miner — Telegram Bot
+// Handles /start (with referral param), launches the Mini App, and basic commands.
+
+require('dotenv').config();
+const TelegramBot = require('node-telegram-bot-api');
+const http = require('http');
+
+// Back4app requires a listening port even for background services — this tiny
+// server just responds "OK" so the platform's port check passes.
+http.createServer((req, res) => res.end('LYKAN bot is running')).listen(3000);
+
+const BOT_TOKEN = process.env.BOT_TOKEN;
+const MINIAPP_URL = 'https://itfreelancersclients.github.io/lykan-miner-app/'; // Live Mini App URL
+const BOT_USERNAME = process.env.BOT_USERNAME; // e.g. lykan_miner_bot (no @)
+
+const bot = new TelegramBot(BOT_TOKEN, { polling: true });
+
+bot.onText(/\/start(?:\s+(.+))?/, (msg, match) => {
+  const chatId = msg.chat.id;
+  const referralParam = match[1]; // will be the referrer's telegram_id if present
+  const firstName = msg.from.first_name || 'there';
+
+  const webAppUrl = referralParam ? `${MINIAPP_URL}?startapp=${referralParam}` : MINIAPP_URL;
+
+  bot.sendMessage(
+    chatId,
+    `👋 Welcome to LYKAN, ${firstName}.\n\n` +
+      `LYKAN is a rewards-based ecosystem preparing for the launch of the $LYKAN token. ` +
+      `Claim your rewards every 24 hours, complete tasks, and invite friends to grow your balance.\n\n` +
+      `Every $LYKAN you earn now will count toward the upcoming token airdrop.`,
+    {
+      reply_markup: {
+        inline_keyboard: [[{ text: '💎 Open LYKAN', web_app: { url: webAppUrl } }]],
+      },
+    }
+  );
+});
+
+bot.onText(/\/refer/, (msg) => {
+  const chatId = msg.chat.id;
+  const link = `https://t.me/${BOT_USERNAME}?start=${msg.from.id}`;
+  bot.sendMessage(
+    chatId,
+    `📢 Invite friends to LYKAN and earn bonus rewards for every referral.\n\nYour link:\n${link}`
+  );
+});
+
+bot.onText(/\/help/, (msg) => {
+  bot.sendMessage(
+    msg.chat.id,
+    `👋 LYKAN Miner Bot\n\n` +
+      `/start - Open the mining app\n` +
+      `/refer - Get your referral link\n` +
+      `/help - Show this message`
+  );
+});
+
+console.log('LYKAN Miner bot is running...');
